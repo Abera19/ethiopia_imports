@@ -1,0 +1,427 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ETH Imports - Premium Ethiopian Imported Products">
+    <meta name="theme-color" content="#0F8B4C">
+    
+    <title>{% block title %}{{ site_settings.site_name|default:'ETH Imports' }} - Premium Products{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#0F8B4C',
+                        'primary-dark': '#0A6B3A',
+                        'accent': '#F6B100',
+                        'danger': '#EF4444',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Premium CSS -->
+    <link rel="stylesheet" href="{% static 'products/css/premium.css' %}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Hidden element to store username for JavaScript -->
+    <div id="current-username" data-username="{{ user.username|default:'guest' }}" style="display: none;"></div>
+
+    <!-- Premium Header -->
+    <header class="premium-header" id="mainHeader">
+        <div class="header-top">
+           <!-- Logo -->
+			<a href="{% url 'products:product_list' %}" class="premium-logo">
+				<div class="logo-icon" style="background: linear-gradient(135deg, {{ site_settings.eth_e_color|default:'#0F8B4C' }}, {{ site_settings.eth_h_color|default:'#0A6B3A' }});">
+					{{ site_settings.eth_text|default:'ETH'|slice:":1" }}
+				</div>
+				<div class="logo-text">
+					<span class="e" style="color: {{ site_settings.eth_e_color|default:'#0F8B4C' }};">{{ site_settings.eth_text|default:'ETH'|slice:":1" }}</span>
+					<span class="t" style="color: {{ site_settings.eth_t_color|default:'#F6B100' }};">{{ site_settings.eth_text|default:'ETH'|slice:"1:2" }}</span>
+					<span class="h" style="color: {{ site_settings.eth_h_color|default:'#EF4444' }};">{{ site_settings.eth_text|default:'ETH'|slice:"2:3" }}</span>
+					<span class="suffix">{{ site_settings.brand_suffix|default:' Imports' }}</span>
+				</div>
+			</a>
+						
+            <!-- Search -->
+            <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Search premium products..." id="searchInput">
+                <div class="search-suggestions" id="searchSuggestions">
+                    <div class="suggestion-item">
+                        <i class="fas fa-clock text-gray-400"></i>
+                        <span>Recent searches</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Header Actions -->
+            <div class="header-actions">
+                <a href="#" class="header-action" title="Wishlist" onclick="app.toggleWishlist(); return false;">
+                    <i class="far fa-heart"></i>
+                    <span class="badge wishlist-badge" id="wishlistBadge">0</span>
+                </a>
+                
+                <a href="#" class="header-action" title="Notifications">
+                    <i class="far fa-bell"></i>
+                    <span class="badge">3</span>
+                </a>
+                
+                {% if user.is_authenticated %}
+                    <!-- User Dropdown for Logged-in Users -->
+                    <div class="relative" id="userDropdown">
+                        <button class="header-action" onclick="toggleUserDropdown()" title="Account">
+                            <i class="fas fa-user-circle"></i>
+                            <span class="badge" style="background: #0F8B4C; font-size: 0.5rem; min-width: auto; padding: 0 6px;">{{ user.username|slice:":1"|upper }}</span>
+                        </button>
+                        <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50" style="top: 100%;">
+                            <div class="px-4 py-2 border-b border-gray-200">
+                                <p class="text-sm font-semibold text-gray-900">{{ user.get_full_name|default:user.username }}</p>
+                                <p class="text-xs text-gray-500">{{ user.email }}</p>
+                            </div>
+                            {% if user.is_staff %}
+                                <a href="{% url 'admin:index' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                                    <i class="fas fa-cog mr-2"></i> Admin Panel
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'products:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-user mr-2"></i> My Profile
+                            </a>
+                            <a href="{% url 'products:orders' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-shopping-bag mr-2"></i> My Orders
+                            </a>
+                            <a href="{% url 'products:wishlist' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-heart mr-2"></i> Wishlist
+                            </a>
+                            <div class="border-t border-gray-200 my-1"></div>
+                            <form method="post" action="{% url 'accounts:logout' %}" class="block">
+                                {% csrf_token %}
+                                <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="#" class="header-action" title="Account" onclick="app.openAuthModal(); return false;">
+                        <i class="far fa-user"></i>
+                    </a>
+                {% endif %}
+                
+                <a href="#" class="header-action" title="Cart" onclick="app.showCart(); return false;">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="badge" id="cartBadge">0</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Mega Menu -->
+        <div class="mega-menu" id="megaMenu">
+            <div class="mega-menu-grid">
+                <div class="mega-menu-col">
+                    <h4>Electronics</h4>
+                    <a href="{% url 'products:product_list' %}?category=electronics">Smartphones</a>
+                    <a href="{% url 'products:product_list' %}?category=electronics">Laptops</a>
+                    <a href="{% url 'products:product_list' %}?category=electronics">Audio</a>
+                    <a href="{% url 'products:product_list' %}?category=electronics">Cameras</a>
+                </div>
+                <div class="mega-menu-col">
+                    <h4>Fashion</h4>
+                    <a href="{% url 'products:product_list' %}?category=clothing">Men</a>
+                    <a href="{% url 'products:product_list' %}?category=clothing">Women</a>
+                    <a href="{% url 'products:product_list' %}?category=clothing">Kids</a>
+                    <a href="{% url 'products:product_list' %}?category=clothing">Accessories</a>
+                </div>
+                <div class="mega-menu-col">
+                    <h4>Home</h4>
+                    <a href="{% url 'products:product_list' %}?category=furniture">Furniture</a>
+                    <a href="{% url 'products:product_list' %}?category=furniture">Decor</a>
+                    <a href="{% url 'products:product_list' %}?category=home-appliances">Kitchen</a>
+                    <a href="{% url 'products:product_list' %}?category=home-appliances">Garden</a>
+                </div>
+                <div class="mega-menu-col">
+                    <h4>Beauty</h4>
+                    <a href="#">Skincare</a>
+                    <a href="#">Makeup</a>
+                    <a href="#">Hair</a>
+                    <a href="#">Fragrance</a>
+                </div>
+                <div class="mega-menu-col">
+                    <h4>Books</h4>
+                    <a href="{% url 'products:product_list' %}?category=books">Fiction</a>
+                    <a href="{% url 'products:product_list' %}?category=books">Non-Fiction</a>
+                    <a href="{% url 'products:product_list' %}?category=books">Educational</a>
+                    <a href="{% url 'products:product_list' %}?category=books">Children</a>
+                </div>
+                <div class="mega-menu-col">
+                    <h4>More</h4>
+                    <a href="#">Sports</a>
+                    <a href="#">Automotive</a>
+                    <a href="#">Office</a>
+                    <a href="#">Toys</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        {% block hero %}{% endblock %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white/80 backdrop-blur-md border-t border-gray-200 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-8">
+                <div class="md:col-span-2">
+                    <a href="{% url 'products:product_list' %}" class="premium-logo">
+                        <div class="logo-icon">E</div>
+                        <div class="logo-text">
+                            <span class="e">E</span><span class="t">T</span><span class="h">H</span>
+                            <span class="suffix"> {{ site_settings.footer_brand|default:'Imports' }}</span>
+                        </div>
+                    </a>
+                    <p class="text-gray-500 mt-3 text-sm max-w-sm">
+                        {{ site_settings.footer_tagline|default:'Premium products for discerning customers. Curated with care, delivered with excellence.' }}
+                    </p>
+                    <div class="flex gap-4 mt-4">
+                        <a href="{{ site_settings.facebook_url|default:'#' }}" class="text-gray-400 hover:text-primary transition-colors"><i class="fab fa-facebook-f text-xl"></i></a>
+                        <a href="{{ site_settings.instagram_url|default:'#' }}" class="text-gray-400 hover:text-primary transition-colors"><i class="fab fa-instagram text-xl"></i></a>
+                        <a href="{{ site_settings.twitter_url|default:'#' }}" class="text-gray-400 hover:text-primary transition-colors"><i class="fab fa-twitter text-xl"></i></a>
+                        <a href="{{ site_settings.youtube_url|default:'#' }}" class="text-gray-400 hover:text-primary transition-colors"><i class="fab fa-youtube text-xl"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-4">Shop</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li><a href="#" class="hover:text-primary transition-colors">New Arrivals</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Best Sellers</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Sale</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Gift Cards</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-4">Support</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li><a href="#" class="hover:text-primary transition-colors">Help Center</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Returns</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Shipping</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-4">Company</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li><a href="#" class="hover:text-primary transition-colors">About</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Careers</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Privacy</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-200 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+                <p>&copy; {% now "Y" %} {{ site_settings.footer_brand|default:'ETH Imports' }}. {{ site_settings.footer_copyright|default:'All rights reserved.' }}</p>
+                <div class="flex items-center gap-4 mt-4 md:mt-0">
+                    <span class="text-xs uppercase tracking-wider">We Accept</span>
+                    <i class="fab fa-cc-visa text-xl text-gray-400"></i>
+                    <i class="fab fa-cc-mastercard text-xl text-gray-400"></i>
+                    <i class="fab fa-cc-paypal text-xl text-gray-400"></i>
+                    <i class="fab fa-cc-apple-pay text-xl text-gray-400"></i>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <!-- Quick View Modal -->
+    <div id="quickViewModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 720px; position: relative;">
+            <button class="modal-close" onclick="app.closeModal()">&times;</button>
+            <div id="quickViewContent"></div>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 440px; position: relative;">
+            <button class="modal-close" onclick="app.closeAuthModal()">&times;</button>
+            <div id="authContent">
+                <!-- Login Form -->
+                <div id="loginForm">
+                    <h2 class="text-2xl font-bold text-center mb-6">Welcome Back</h2>
+                    <form method="post" action="{% url 'accounts:login' %}">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                            <input type="text" name="username" required
+                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                   placeholder="Enter your username">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                            <input type="password" name="password" required
+                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                   placeholder="Enter your password">
+                        </div>
+                        <div class="flex items-center justify-between mb-6">
+                            <label class="flex items-center text-sm text-gray-600">
+                                <input type="checkbox" name="remember" class="mr-2 accent-primary"> Remember me
+                            </label>
+                            <span class="text-sm text-gray-400">Forgot password?</span>
+                        </div>
+                        <button type="submit" class="w-full btn btn-primary py-3 text-lg">
+                            <i class="fas fa-sign-in-alt mr-2"></i> Sign In
+                        </button>
+                    </form>
+                    <p class="text-center mt-4 text-sm text-gray-500">
+                        Don't have an account? 
+                        <a href="#" onclick="app.showRegister(); return false;" class="text-primary font-semibold hover:underline">Sign up</a>
+                    </p>
+                </div>
+                
+                <!-- Register Form -->
+                <div id="registerForm" style="display: none;">
+                    <h2 class="text-2xl font-bold text-center mb-6">Create Account</h2>
+                    <form method="post" action="{% url 'accounts:register' %}">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Username *</label>
+                            <input type="text" name="username" required
+                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                   placeholder="Choose a username">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                            <input type="email" name="email" required
+                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                   placeholder="your@email.com">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Password *</label>
+                            <input type="password" name="password1" required
+                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                   placeholder="Create a password">
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password *</label>
+                            <input type="password" name="password2" required
+                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                   placeholder="Confirm your password">
+                        </div>
+                        <button type="submit" class="w-full btn btn-primary py-3 text-lg">
+                            <i class="fas fa-user-plus mr-2"></i> Create Account
+                        </button>
+                    </form>
+                    <p class="text-center mt-4 text-sm text-gray-500">
+                        Already have an account? 
+                        <a href="#" onclick="app.showLogin(); return false;" class="text-primary font-semibold hover:underline">Sign in</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cartModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 560px; position: relative;">
+            <button class="modal-close" onclick="app.closeCartModal()">&times;</button>
+            <h2 class="text-2xl font-bold mb-6">Your Cart</h2>
+            <div id="cartContent">
+                <div class="text-center py-8">
+                    <i class="fas fa-shopping-bag text-6xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500">Your cart is empty</p>
+                    <a href="{% url 'products:product_list' %}" class="btn btn-primary mt-4 inline-block">
+                        Start Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // User Dropdown Toggle
+        function toggleUserDropdown() {
+            const menu = document.getElementById('userDropdownMenu');
+            if (menu) {
+                menu.classList.toggle('hidden');
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const menu = document.getElementById('userDropdownMenu');
+            if (dropdown && menu && !dropdown.contains(event.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        // Initialize modal functions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close all modals
+            document.querySelectorAll('.modal-overlay').forEach(modal => {
+                modal.classList.remove('active');
+                modal.style.display = 'none';
+            });
+            document.body.style.overflow = '';
+            
+            // Setup cart modal close
+            const cartModal = document.getElementById('cartModal');
+            if (cartModal) {
+                cartModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        app.closeCartModal();
+                    }
+                });
+            }
+            
+            // Setup auth modal close
+            const authModal = document.getElementById('authModal');
+            if (authModal) {
+                authModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        app.closeAuthModal();
+                    }
+                });
+            }
+
+            // Setup quick view modal close
+            const quickViewModal = document.getElementById('quickViewModal');
+            if (quickViewModal) {
+                quickViewModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        app.closeModal();
+                    }
+                });
+            }
+        });
+    </script>
+    <script src="{% static 'products/js/premium.js' %}"></script>
+    <script src="{% static 'products/js/wishlist.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

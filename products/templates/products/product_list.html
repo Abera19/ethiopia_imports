@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block title %}Products - ETH Imports{% endblock %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row gap-8">
+    <!-- Filter Sidebar -->
+    <aside class="lg:w-1/4">
+        <div class="filter-sidebar">
+            <h2 class="filter-title">Filters</h2>
+            
+            <form id="filterForm" method="get" action="{% url 'products:product_list' %}">
+                <!-- Search -->
+                <div class="filter-group">
+                    <label class="filter-group-label">Search</label>
+                    <input type="text" name="q" value="{{ request.GET.q|default:'' }}" 
+                           class="filter-input" placeholder="Search products...">
+                </div>
+                
+                <!-- Category -->
+                <div class="filter-group">
+                    <label class="filter-group-label">Category</label>
+                    <select name="category" class="filter-select">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                            <option value="{{ category.slug }}" 
+                                    {% if request.GET.category == category.slug %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Price Range -->
+                <div class="filter-group">
+                    <label class="filter-group-label">Price Range (ETB)</label>
+                    <div class="filter-price-group">
+                        <input type="number" name="min_price" value="{{ request.GET.min_price|default:'' }}" 
+                               class="filter-input" placeholder="Min" min="0">
+                        <input type="number" name="max_price" value="{{ request.GET.max_price|default:'' }}" 
+                               class="filter-input" placeholder="Max" min="0">
+                    </div>
+                </div>
+                
+                <!-- Sort -->
+                <div class="filter-group">
+                    <label class="filter-group-label">Sort By</label>
+                    <select name="sort" class="filter-select">
+                        <option value="-created_at" {% if request.GET.sort == '-created_at' %}selected{% endif %}>Newest First</option>
+                        <option value="price" {% if request.GET.sort == 'price' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="-price" {% if request.GET.sort == '-price' %}selected{% endif %}>Price: High to Low</option>
+                        <option value="title" {% if request.GET.sort == 'title' %}selected{% endif %}>Name: A to Z</option>
+                        <option value="-title" {% if request.GET.sort == '-title' %}selected{% endif %}>Name: Z to A</option>
+                    </select>
+                </div>
+                
+                <!-- Apply Filters -->
+                <button type="submit" class="filter-btn">
+                    <i class="fas fa-filter mr-2"></i> Apply Filters
+                </button>
+                
+                <!-- Clear Filters -->
+                {% if request.GET %}
+                    <a href="{% url 'products:product_list' %}" class="filter-clear">
+                        <i class="fas fa-times mr-1"></i> Clear All Filters
+                    </a>
+                {% endif %}
+            </form>
+        </div>
+    </aside>
+    
+    <!-- Product Grid -->
+    <section class="lg:w-3/4">
+        <!-- Results Header -->
+        <div class="flex justify-between items-center mb-6">
+            <p class="results-count">
+                <span class="font-semibold">{{ page_obj.paginator.count }}</span> products found
+            </p>
+        </div>
+        
+        <!-- Products Grid -->
+        <div class="product-grid">
+            {% for product in products %}
+                <div class="product-card" data-product-id="{{ product.id }}">
+                    <a href="{% url 'products:product_detail' product.slug %}" class="product-link">
+                        <div class="product-card-image-wrapper" style="position: relative;">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.title }}" 
+                                     class="product-card-image"
+                                     loading="lazy"
+                                     onerror="this.src='/static/images/placeholder.png'">
+                            {% else %}
+                                <img src="{% static 'images/placeholder.png' %}" alt="{{ product.title }}" 
+                                     class="product-card-image">
+                            {% endif %}
+                            
+                            <!-- Stock Badge -->
+                            <span class="stock-badge 
+                                {% if product.stock_quantity == 0 %}out-of-stock
+                                {% elif product.stock_quantity <= 5 %}low-stock
+                                {% else %}in-stock{% endif %}">
+                                <span class="dot"></span>
+                                {% if product.stock_quantity == 0 %}
+                                    Out of Stock
+                                {% elif product.stock_quantity <= 5 %}
+                                    Low Stock
+                                {% else %}
+                                    In Stock
+                                {% endif %}
+                            </span>
+                        </div>
+                    </a>
+                    
+                    <div class="product-card-body">
+                        <a href="{% url 'products:product_detail' product.slug %}" class="product-link">
+                            <h3 class="product-card-title">{{ product.title }}</h3>
+                        </a>
+                        <p class="product-card-source">{{ product.source }}</p>
+                        <p class="product-card-price">ETB {{ product.price|floatformat:2|intcomma }}</p>
+                        
+                        <!-- Stock Bar -->
+                        <div class="stock-bar-container">
+                            <div class="stock-bar">
+                                <div class="stock-bar-fill 
+                                    {% if product.stock_quantity > 10 %}high
+                                    {% elif product.stock_quantity > 0 %}medium
+                                    {% else %}low{% endif %}"
+                                    style="width: {% if product.stock_quantity > 0 %}100{% else %}0{% endif %}%;">
+                                </div>
+                            </div>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">
+                                {{ product.stock_quantity }} in stock
+                            </span>
+                        </div>
+                        
+                        <!-- Wishlist Button -->
+                        <button class="wishlist-btn" 
+                                data-product-id="{{ product.id }}"
+                                onclick="app.toggleWishlist({{ product.id }})">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-span-full text-center py-12">
+                    <i class="fas fa-box-open" style="font-size: 3rem; color: var(--text-muted);"></i>
+                    <h3 class="text-xl font-semibold text-gray-600 mt-4">No products found</h3>
+                    <p class="text-gray-500">Try adjusting your filters or search terms.</p>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <button onclick="app.goToPage({{ page_obj.previous_page_number }})" class="page-btn">
+                        ← Previous
+                    </button>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    <button onclick="app.goToPage({{ num }})" 
+                            class="page-btn {% if page_obj.number == num %}active{% endif %}">
+                        {{ num }}
+                    </button>
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                    <button onclick="app.goToPage({{ page_obj.next_page_number }})" class="page-btn">
+                        Next →
+                    </button>
+                {% endif %}
+            </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Pass products data to JavaScript
+    window.productsData = {{ products_json|safe }};
+</script>
+{% endblock %}

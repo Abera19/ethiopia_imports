@@ -1,0 +1,163 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ETH Imports - Premium Ethiopian Imported Products">
+    <title>{% block title %}ETH Imports{% endblock %}</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'ethiopia-green': '#0A8C5A',
+                        'ethiopia-yellow': '#FCD116',
+                        'ethiopia-red': '#DA121A',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'products/css/style.css' %}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Modern Header -->
+    <header class="header-modern">
+        <div class="header-inner">
+            <!-- Logo -->
+            <a href="{% url 'products:product_list' %}" class="logo">
+                <span class="e">E</span>
+                <span class="t">T</span>
+                <span class="h">H</span>
+                <span class="brand-suffix"> Imports</span>
+            </a>
+            
+            <!-- Search Bar -->
+            <div class="search-container">
+                <form action="{% url 'products:product_list' %}" method="get" class="search-form">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" 
+                           name="q" 
+                           class="search-bar" 
+                           placeholder="Search premium products..." 
+                           value="{{ request.GET.q|default:'' }}">
+                </form>
+            </div>
+            
+            <!-- Header Actions -->
+            <div class="header-actions">
+                <!-- Wishlist -->
+                <button class="header-action-btn" onclick="app.openQuickView && app.openQuickView()" title="Wishlist">
+                    <i class="far fa-heart heart-icon"></i>
+                    <span class="badge wishlist-badge" id="wishlistBadge">0</span>
+                </button>
+                
+                <!-- Profile -->
+                <button class="header-action-btn profile-btn" onclick="app.openAuthModal && app.openAuthModal()" title="Account">
+                    <i class="far fa-user"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Quick View Modal -->
+    <div id="quickViewModal" class="modal-overlay">
+        <div class="modal-content" style="position: relative; max-width: 720px;">
+            <button class="modal-close" onclick="app.closeModal && app.closeModal()">&times;</button>
+            <div id="quickViewContent">
+                <!-- Content loaded via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal-overlay">
+        <div class="modal-content" style="position: relative;">
+            <button class="modal-close" onclick="app.closeModal && app.closeModal()">&times;</button>
+            <div class="auth-form">
+                <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Welcome Back</h2>
+                <form method="post" action="/accounts/login/">
+                    {% csrf_token %}
+                    <div style="margin-bottom: 1rem;">
+                        <input type="email" name="username" placeholder="Email" class="filter-input" required>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <input type="password" name="password" placeholder="Password" class="filter-input" required>
+                    </div>
+                    <button type="submit" class="filter-btn">Sign In</button>
+                </form>
+                <p style="margin-top: 1rem; text-align: center; color: var(--text-muted);">
+                    Don't have an account? <a href="/accounts/register/" style="color: var(--primary-green);">Sign up</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">ETH Imports</h3>
+                    <p class="text-gray-400 text-sm">Premium products for discerning customers.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="{% url 'products:product_list' %}" class="hover:text-white transition-colors">Products</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">About</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Contact</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><i class="fas fa-phone mr-2"></i> {{ whatsapp_number }}</li>
+                        <li><i class="fab fa-telegram mr-2"></i> @{{ telegram_username }}</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Follow Us</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-facebook text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-instagram text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-telegram text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-sm text-gray-400">
+                <p>&copy; {% now "Y" %} ETH Imports. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="{% static 'products/js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

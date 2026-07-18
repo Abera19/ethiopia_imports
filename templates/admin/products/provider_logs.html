@@ -1,0 +1,154 @@
+{% extends "admin/base_site.html" %}
+{% load humanize %}
+
+{% block title %}Provider Logs - Ethiopia Imports{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Product Provider Logs</h1>
+        <p class="text-gray-600">Track supplier information, costs, and shipping status for imported products.</p>
+    </div>
+    
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-sm font-medium text-gray-500">Total Products</h3>
+            <p class="text-3xl font-bold text-gray-800">{{ total_products }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-sm font-medium text-gray-500">Providers Tracked</h3>
+            <p class="text-3xl font-bold text-ethiopia-green">{{ total_providers }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-sm font-medium text-gray-500">Total Cost Value</h3>
+            <p class="text-3xl font-bold text-ethiopia-red">ETB {{ total_cost|floatformat:2|intcomma }}</p>
+        </div>
+    </div>
+    
+    <!-- Provider Logs Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Country</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost Price</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Margin</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shipping</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tracking</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for provider in provider_logs %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    {% if provider.product.image %}
+                                        <img src="{{ provider.product.image.url }}" alt="{{ provider.product.title }}" 
+                                             class="h-10 w-10 rounded-full object-cover mr-3">
+                                    {% endif %}
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">
+                                            <a href="{% url 'admin:products_product_change' provider.product.id %}" 
+                                               class="hover:text-ethiopia-green">
+                                                {{ provider.product.title }}
+                                            </a>
+                                        </div>
+                                        <div class="text-xs text-gray-500">Stock: {{ provider.product.stock_quantity }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ provider.supplier_name }}</div>
+                                <div class="text-xs text-gray-500">{{ provider.supplier_contact|default:"No contact" }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ provider.supplier_country }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                ETB {{ provider.cost_price|floatformat:2|intcomma }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% with margin=provider.product.price|add:"-"|add:provider.cost_price|floatformat:2 %}
+                                    <span class="text-sm font-medium {% if margin > 0 %}text-ethiopia-green{% else %}text-ethiopia-red{% endif %}">
+                                        ETB {{ margin }}
+                                    </span>
+                                {% endwith %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if provider.shipping_status == 'delivered' %}bg-green-100 text-green-800
+                                    {% elif provider.shipping_status == 'transit' %}bg-yellow-100 text-yellow-800
+                                    {% elif provider.shipping_status == 'customs' %}bg-red-100 text-red-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ provider.get_shipping_status_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ provider.shipping_tracking|default:"N/A" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ provider.updated_at|date:"Y-m-d H:i" }}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="8" class="px-6 py-12 text-center text-gray-500">
+                                <i class="fas fa-box-open text-4xl mb-3 block"></i>
+                                No provider logs found. Add provider information to products in the admin panel.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Quick Stats -->
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-lg shadow p-6">
+            <h4 class="font-semibold mb-4">Shipping Status Summary</h4>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span>Pending</span>
+                    <span class="font-semibold">
+                        {{ provider_logs|dictsort:"shipping_status"|dictsortreversed:"shipping_status"|first.count }}
+                    </span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Shipped</span>
+                    <span class="font-semibold"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span>In Transit</span>
+                    <span class="font-semibold"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Delivered</span>
+                    <span class="font-semibold"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Customs Clearance</span>
+                    <span class="font-semibold"></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-6">
+            <h4 class="font-semibold mb-4">Top Suppliers</h4>
+            <div class="space-y-2">
+                {% for provider in provider_logs|dictsort:"supplier_name"|slice:":5" %}
+                    <div class="flex justify-between">
+                        <span>{{ provider.supplier_name }}</span>
+                        <span class="font-semibold">ETB {{ provider.cost_price|floatformat:2|intcomma }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

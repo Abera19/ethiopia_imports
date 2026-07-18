@@ -1,0 +1,494 @@
+{% extends 'base_premium.html' %}
+{% load humanize %}
+{% load static %}
+{% load product_extras %}
+
+{% block title %}Products - {{ site_settings.site_name|default:'ETH Imports' }}{% endblock %}
+
+{% block hero %}
+<!-- Hero Section - Standard Size -->
+<section class="hero-section">
+    <div class="hero-banner">
+        <div class="hero-content">
+            <span class="hero-badge">
+                <i class="fas fa-gift mr-2"></i> {{ site_settings.hero_badge|default:'Summer Sale' }}
+            </span>
+            <h1 class="hero-title">
+                {{ site_settings.hero_title|default:'Discover Premium Ethiopian Imports' }}
+            </h1>
+            <p class="hero-subtitle">
+                {{ site_settings.hero_subtitle|default:'Curated collection of high-quality products from around the world, delivered to your doorstep.' }}
+            </p>
+            <div class="hero-actions">
+                <a href="{{ site_settings.hero_button_url|default:'#products' }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-shopping-bag mr-2"></i> {{ site_settings.hero_button_text|default:'Shop Now' }}
+                </a>
+                <a href="{{ site_settings.hero_secondary_button_url|default:'#' }}" class="btn btn-outline btn-lg">
+                    <i class="fas fa-play-circle mr-2"></i> {{ site_settings.hero_secondary_button_text|default:'Watch Story' }}
+                </a>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img src="{% static 'images/hero-product.svg' %}" alt="Premium Products" class="w-full">
+        </div>
+    </div>
+</section>
+<!-- Product Slider Section -->
+{% if featured_products %}
+<section class="slider-section max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div class="section-header">
+        <h2>Featured Products</h2>
+        <a href="{% url 'products:product_list' %}" class="see-all">View All <i class="fas fa-arrow-right ml-1"></i></a>
+    </div>
+    
+    <div class="product-slider-container relative">
+        <div class="product-slider overflow-hidden rounded-xl">
+            <div class="slider-track flex transition-transform duration-500 ease-in-out" id="sliderTrack">
+                {% for product in featured_products %}
+                    <div class="slider-slide flex-shrink-0 w-full">
+                        <a href="{% url 'products:product_detail' product.slug %}" class="block">
+                            <div class="relative bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl overflow-hidden" style="height: 300px;">
+                                <div class="flex items-center h-full">
+                                    <div class="w-1/2 p-8">
+                                        <span class="text-xs font-semibold text-primary uppercase tracking-wider">{{ product.category.name|default:'Featured' }}</span>
+                                        <h3 class="text-2xl font-bold text-gray-900 mt-2">{{ product.title }}</h3>
+                                        <p class="text-gray-600 mt-2 line-clamp-2">{{ product.description|truncatechars:100 }}</p>
+                                        <div class="flex items-center gap-3 mt-4">
+                                            <span class="text-2xl font-bold text-primary">ETB {{ product.price|floatformat:0|intcomma }}</span>
+                                            <span class="btn btn-primary text-sm py-2 px-4">Shop Now</span>
+                                        </div>
+                                    </div>
+                                    <div class="w-1/2 h-full flex items-center justify-center p-4">
+                                        {% if product.images.exists %}
+                                            <img src="{{ product.images.first.image.url }}" alt="{{ product.title }}" 
+                                                 class="max-h-full max-w-full object-contain rounded-lg">
+                                        {% elif product.image %}
+                                            <img src="{{ product.image.url }}" alt="{{ product.title }}" 
+                                                 class="max-h-full max-w-full object-contain rounded-lg">
+                                        {% else %}
+                                            <div class="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-image text-gray-400 text-4xl"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <!-- Stock Badge -->
+                                {% if product.stock_quantity > 0 %}
+                                    <span class="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                        In Stock
+                                    </span>
+                                {% else %}
+                                    <span class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                        Out of Stock
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Slider Controls -->
+        <button class="slider-btn prev absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg rounded-full w-10 h-10 flex items-center justify-center transition-all z-10" onclick="moveSlider(-1)">
+            <i class="fas fa-chevron-left text-gray-700"></i>
+        </button>
+        <button class="slider-btn next absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg rounded-full w-10 h-10 flex items-center justify-center transition-all z-10" onclick="moveSlider(1)">
+            <i class="fas fa-chevron-right text-gray-700"></i>
+        </button>
+        
+        <!-- Dots -->
+        <div class="flex justify-center gap-2 mt-4" id="sliderDots">
+            {% for product in featured_products %}
+                <button class="slider-dot w-2 h-2 rounded-full transition-all {% if forloop.first %}bg-primary w-6{% else %}bg-gray-300{% endif %}" 
+                        onclick="goToSlide({{ forloop.counter0 }})" 
+                        data-index="{{ forloop.counter0 }}"></button>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+<!-- Categories -->
+<section class="categories-section">
+    <div class="section-header">
+        <h2>{{ site_settings.categories_title|default:'Shop by Category' }}</h2>
+        <a href="#" class="see-all">{{ site_settings.categories_view_all|default:'View All' }} <i class="fas fa-arrow-right ml-1"></i></a>
+    </div>
+    <div class="category-grid">
+        {% for category in categories %}
+            <a href="{% url 'products:product_list' %}?category={{ category.slug }}" class="category-card animate-fade-in">
+                <div class="icon">
+                    <i class="fas fa-{{ category.icon|default:'tag' }}"></i>
+                </div>
+                <div class="name">{{ category.name }}</div>
+                <div class="count">{{ category.products.count }} products</div>
+            </a>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" id="products">
+    <!-- Premium Filter Sidebar -->
+    <aside class="lg:w-1/4">
+        <div class="filter-sidebar-premium">
+            <div class="filter-header">
+                <h3><i class="fas fa-sliders-h mr-2 text-primary"></i> Filters</h3>
+                {% if request.GET %}
+                    <a href="{% url 'products:product_list' %}" class="filter-clear">
+                        <i class="fas fa-times mr-1"></i> Clear All
+                    </a>
+                {% endif %}
+            </div>
+            
+            <form id="filterForm" method="get" action="{% url 'products:product_list' %}">
+                <!-- Search -->
+                <div class="filter-group-premium">
+                    <div class="group-header">
+                        <span>Search</span>
+                    </div>
+                    <div class="group-content">
+                        <input type="text" name="q" value="{{ request.GET.q|default:'' }}" 
+                               class="w-full px-3 py-2 border border-gray-200 rounded-md focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+                               placeholder="Search products...">
+                    </div>
+                </div>
+                
+                <!-- Category -->
+                <div class="filter-group-premium">
+                    <div class="group-header" onclick="toggleGroup(this)">
+                        <span>Category</span>
+                        <i class="fas fa-chevron-down toggle open"></i>
+                    </div>
+                    <div class="group-content">
+                        <label class="filter-checkbox">
+                            <input type="radio" name="category" value="" {% if not request.GET.category %}checked{% endif %}>
+                            <span>All Categories</span>
+                        </label>
+                        {% for category in categories %}
+                            <label class="filter-checkbox">
+                                <input type="radio" name="category" value="{{ category.slug }}" 
+                                       {% if request.GET.category == category.slug %}checked{% endif %}>
+                                <span>{{ category.name }}</span>
+                                <span class="count">{{ category.products.count }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Price Range -->
+                <div class="filter-group-premium">
+                    <div class="group-header" onclick="toggleGroup(this)">
+                        <span>Price Range (ETB)</span>
+                        <i class="fas fa-chevron-down toggle open"></i>
+                    </div>
+                    <div class="group-content">
+                        <div class="price-slider">
+                            <div class="range-inputs">
+                                <input type="number" name="min_price" value="{{ request.GET.min_price|default:'' }}" 
+                                       placeholder="Min" min="0">
+                                <input type="number" name="max_price" value="{{ request.GET.max_price|default:'' }}" 
+                                       placeholder="Max" min="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sort -->
+                <div class="filter-group-premium">
+                    <div class="group-header" onclick="toggleGroup(this)">
+                        <span>Sort By</span>
+                        <i class="fas fa-chevron-down toggle open"></i>
+                    </div>
+                    <div class="group-content">
+                        <select name="sort" class="w-full px-3 py-2 border border-gray-200 rounded-md focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+                            <option value="-created_at" {% if request.GET.sort == '-created_at' %}selected{% endif %}>Newest First</option>
+                            <option value="price" {% if request.GET.sort == 'price' %}selected{% endif %}>Price: Low to High</option>
+                            <option value="-price" {% if request.GET.sort == '-price' %}selected{% endif %}>Price: High to Low</option>
+                            <option value="title" {% if request.GET.sort == 'title' %}selected{% endif %}>Name: A to Z</option>
+                            <option value="-title" {% if request.GET.sort == '-title' %}selected{% endif %}>Name: Z to A</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Availability -->
+                <div class="filter-group-premium">
+                    <div class="group-header" onclick="toggleGroup(this)">
+                        <span>Availability</span>
+                        <i class="fas fa-chevron-down toggle open"></i>
+                    </div>
+                    <div class="group-content">
+                        <label class="filter-checkbox">
+                            <input type="checkbox" name="in_stock" value="true" 
+                                   {% if request.GET.in_stock %}checked{% endif %}>
+                            <span>In Stock Only</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-full mt-4">
+                    <i class="fas fa-filter mr-2"></i> Apply Filters
+                </button>
+            </form>
+        </div>
+    </aside>
+    
+    <!-- Product Grid -->
+    <section class="lg:w-3/4">
+        <!-- Results Header -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <p class="results-count">
+                <span class="font-semibold">{{ page_obj.paginator.count }}</span> products found
+            </p>
+            <div class="flex items-center gap-3">
+                <div class="view-toggle">
+                    <button class="view-toggle-btn active" onclick="setView('grid')" title="Grid View">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button class="view-toggle-btn" onclick="setView('list')" title="List View">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Product Grid -->
+        <div class="product-grid" id="productGrid">
+            {% for product in products %}
+                <div class="product-card-premium animate-fade-in" style="animation-delay: {{ forloop.counter0|multiply:50 }}ms">
+                    <div class="image-wrapper">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.title }}" loading="lazy">
+                        {% else %}
+                            <img src="{% static 'images/placeholder.png' %}" alt="{{ product.title }}" loading="lazy">
+                        {% endif %}
+                        
+                        <div class="badges">
+                            {% if product.price > 50000 %}
+                                <span class="badge badge-sale">Premium</span>
+                            {% endif %}
+                            {% if product.featured %}
+                                <span class="badge badge-best">Best Seller</span>
+                            {% endif %}
+                            {% if forloop.counter <= 2 %}
+                                <span class="badge badge-new">New</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="actions">
+                            <button class="action-btn" onclick="event.stopPropagation(); app.quickView('{{ product.slug }}'); return false;" title="Quick View">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn wishlist-btn" onclick="event.stopPropagation(); app.toggleWishlist({{ product.id }}); return false;" data-product-id="{{ product.id }}" title="Wishlist">
+                                <i class="far fa-heart"></i>
+                            </button>
+                            <button class="action-btn" onclick="event.stopPropagation(); return false;" title="Compare">
+                                <i class="fas fa-exchange-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="info">
+                        <div class="brand">{{ product.source|truncatechars:20 }}</div>
+                        <a href="{% url 'products:product_detail' product.slug %}" class="title">
+                            {{ product.title }}
+                        </a>
+                        <div class="rating">
+                            <span class="stars">★★★★★</span>
+                            <span class="count">({{ forloop.counter|add:"2" }} reviews)</span>
+                        </div>
+                        <div class="price">
+                            <span class="current">ETB {{ product.price|floatformat:0|intcomma }}</span>
+                            {% if product.price > 50000 %}
+                                <span class="old">ETB {{ product.price|add:"5000"|floatformat:0|intcomma }}</span>
+                                <span class="discount">-10%</span>
+                            {% endif %}
+                        </div>
+                        <div class="stock {% if product.stock_quantity > 10 %}in{% elif product.stock_quantity > 0 %}low{% else %}out{% endif %}">
+                            {% if product.stock_quantity > 10 %}
+                                <i class="fas fa-check-circle mr-1"></i> In Stock
+                            {% elif product.stock_quantity > 0 %}
+                                <i class="fas fa-exclamation-triangle mr-1"></i> Only {{ product.stock_quantity }} left
+                            {% else %}
+                                <i class="fas fa-times-circle mr-1"></i> Out of Stock
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-span-full text-center py-16">
+                    <i class="fas fa-box-open text-6xl text-gray-300 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-600">No products found</h3>
+                    <p class="text-gray-500">Try adjusting your filters or search terms.</p>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            <div class="pagination flex justify-center gap-2 mt-8">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                       class="page-btn">
+                        <i class="fas fa-chevron-left mr-1"></i> Previous
+                    </a>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <span class="page-btn active">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                           class="page-btn">
+                            {{ num }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                       class="page-btn">
+                        Next <i class="fas fa-chevron-right ml-1"></i>
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </section>
+</div>
+
+<script>
+// ===== Product Slider =====
+let currentSlide = 0;
+const slides = document.querySelectorAll('.slider-slide');
+const totalSlides = slides.length;
+const sliderTrack = document.getElementById('sliderTrack');
+let autoSlideInterval;
+
+function updateSlider() {
+    if (!sliderTrack) return;
+    const slideWidth = slides[0]?.offsetWidth || 0;
+    sliderTrack.style.transform = `translateX(-${currentSlide * slideWidth}px)`;
+    
+    // Update dots
+    document.querySelectorAll('.slider-dot').forEach((dot, index) => {
+        if (index === currentSlide) {
+            dot.classList.add('bg-primary', 'w-6');
+            dot.classList.remove('bg-gray-300', 'w-2');
+        } else {
+            dot.classList.remove('bg-primary', 'w-6');
+            dot.classList.add('bg-gray-300', 'w-2');
+        }
+    });
+}
+
+function moveSlider(direction) {
+    if (!slides.length) return;
+    currentSlide = (currentSlide + direction + totalSlides) % totalSlides;
+    updateSlider();
+    resetAutoSlide();
+}
+
+function goToSlide(index) {
+    currentSlide = index;
+    updateSlider();
+    resetAutoSlide();
+}
+
+function resetAutoSlide() {
+    clearInterval(autoSlideInterval);
+    autoSlideInterval = setInterval(() => {
+        moveSlider(1);
+    }, 5000);
+}
+
+// Initialize slider
+document.addEventListener('DOMContentLoaded', function() {
+    if (slides.length > 0) {
+        updateSlider();
+        resetAutoSlide();
+        
+        // Pause on hover
+        const sliderContainer = document.querySelector('.product-slider-container');
+        if (sliderContainer) {
+            sliderContainer.addEventListener('mouseenter', () => {
+                clearInterval(autoSlideInterval);
+            });
+            sliderContainer.addEventListener('mouseleave', () => {
+                resetAutoSlide();
+            });
+        }
+        
+        // Handle window resize
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(updateSlider, 200);
+        });
+    }
+});
+
+// Responsive: hide slider controls on mobile if needed
+document.addEventListener('DOMContentLoaded', function() {
+    const slides = document.querySelectorAll('.slider-slide');
+    if (slides.length <= 1) {
+        document.querySelector('.slider-btn')?.remove();
+        document.querySelector('.slider-dot')?.remove();
+    }
+});
+function toggleGroup(header) {
+    const content = header.nextElementSibling;
+    const toggle = header.querySelector('.toggle');
+    if (content) {
+        content.classList.toggle('hidden');
+        if (toggle) {
+            toggle.classList.toggle('open');
+        }
+    }
+}
+
+function setView(view) {
+    const grid = document.getElementById('productGrid');
+    const buttons = document.querySelectorAll('.view-toggle-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    if (view === 'grid') {
+        grid.className = 'product-grid';
+        buttons[0].classList.add('active');
+    } else {
+        grid.className = 'product-grid list-view';
+        buttons[1].classList.add('active');
+    }
+}
+
+// Lazy loading images
+document.addEventListener('DOMContentLoaded', function() {
+    const images = document.querySelectorAll('img[loading="lazy"]');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                img.src = img.dataset.src || img.src;
+                observer.unobserve(img);
+            }
+        });
+    });
+    images.forEach(img => observer.observe(img));
+});
+
+// Close modal on escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        app.closeModal();
+    }
+});
+
+// Re-run wishlist update after page load
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        if (window.app) {
+            app.updateAllWishlistButtons();
+        }
+    }, 500);
+});
+</script>
+{% endblock %}

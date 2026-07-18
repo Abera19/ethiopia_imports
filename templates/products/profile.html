@@ -1,0 +1,42 @@
+﻿{% extends 'base_premium.html' %}
+{% load static %}
+
+{% block title %}My Profile - ETH Imports{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-6">My Profile</h1>
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="p-6 md:p-8">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-20 h-20 bg-primary rounded-full flex items-center justify-center text-white text-3xl font-bold">
+                    {{ user.username|slice:":1"|upper }}
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">{{ user.get_full_name|default:user.username }}</h2>
+                    <p class="text-gray-500">{{ user.email }}</p>
+                    <p class="text-sm text-gray-400">Member since {{ user.date_joined|date:"F d, Y" }}</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <p class="text-sm text-gray-500">Username</p>
+                    <p class="font-semibold text-gray-900">{{ user.username }}</p>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <p class="text-sm text-gray-500">Email</p>
+                    <p class="font-semibold text-gray-900">{{ user.email }}</p>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <p class="text-sm text-gray-500">Full Name</p>
+                    <p class="font-semibold text-gray-900">{{ user.get_full_name|default:"Not set" }}</p>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <p class="text-sm text-gray-500">Member Since</p>
+                    <p class="font-semibold text-gray-900">{{ user.date_joined|date:"F d, Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

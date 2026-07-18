@@ -1,0 +1,43 @@
+@"
+{% extends 'base_premium.html' %}
+{% load static %}
+
+{% block title %}Register - ETH Imports{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto py-12">
+    <div class="bg-white rounded-2xl shadow-lg p-8">
+        <h2 class="text-2xl font-bold text-center mb-6">Create Account</h2>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 p-3 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ field.errors.0 }}</p>
+                    {% endif %}
+                    {% if field.help_text %}
+                        <p class="text-gray-400 text-xs mt-1">{{ field.help_text }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <button type="submit" class="w-full btn btn-primary py-3 text-lg">
+                <i class="fas fa-user-plus mr-2"></i> Create Account
+            </button>
+        </form>
+        <p class="text-center mt-4 text-sm text-gray-500">
+            Already have an account? 
+            <a href="{% url 'accounts:login' %}" class="text-primary font-semibold hover:underline">Sign in</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
+"@ | Out-File -FilePath "templates\registration\register.html" -Encoding UTF8

@@ -1,0 +1,141 @@
+/* Custom styles for Ethiopia Imports */
+
+/* Smooth transitions */
+* {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #138808;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0d6b05;
+}
+
+/* Product card hover effects */
+.product-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Button hover effects */
+.btn-ethiopia {
+  background: linear-gradient(135deg, #138808, #0d6b05);
+  transition: transform 0.2s ease;
+}
+
+.btn-ethiopia:hover {
+  transform: scale(1.02);
+}
+
+/* Price tag animation */
+.price-tag {
+  background: linear-gradient(135deg, #FCD116, #f8c800);
+}
+
+/* Loading spinner for AJAX requests */
+.spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #138808;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive grid adjustments */
+@media (max-width: 640px) {
+  .product-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+  }
+  
+  .product-grid .product-card .product-image {
+      height: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+  }
+}
+
+/* Image lazy loading placeholder */
+.image-placeholder {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Ethiopian flag accent bar */
+.ethiopia-flag-bar {
+  height: 4px;
+  background: linear-gradient(to right, #138808 33.33%, #FCD116 33.33%, #FCD116 66.66%, #DA121A 66.66%);
+}
+
+/* Admin customizations */
+.admin-ethiopia-theme .admin-header {
+  background: linear-gradient(135deg, #138808, #0d6b05) !important;
+}
+
+.admin-ethiopia-theme .admin-header a {
+  color: white !important;
+}
+
+/* Mobile navigation improvements */
+@media (max-width: 768px) {
+  .mobile-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+      padding: 0.5rem;
+      z-index: 50;
+  }
+  
+  .mobile-nav a {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.7rem;
+      color: #666;
+  }
+  
+  .mobile-nav a i {
+      font-size: 1.2rem;
+  }
+  
+  .mobile-nav a.active {
+      color: #138808;
+  }
+}

@@ -1,0 +1,7 @@
+﻿<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'>
+    <rect width='400' height='400' fill='#E6F4ED' rx='20'/>
+    <circle cx='200' cy='200' r='120' fill='#0F8B4C' opacity='0.1'/>
+    <circle cx='200' cy='200' r='80' fill='#0F8B4C' opacity='0.2'/>
+    <text x='200' y='200' font-family='Inter, sans-serif' font-size='32' font-weight='700' fill='#0F8B4C' text-anchor='middle' dominant-baseline='middle'>ETH</text>
+    <text x='200' y='240' font-family='Inter, sans-serif' font-size='16' font-weight='500' fill='#6B7280' text-anchor='middle'>Imports</text>
+</svg>

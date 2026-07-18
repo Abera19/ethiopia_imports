@@ -1,0 +1,415 @@
+{% extends 'base_premium.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block title %}{{ product.title }} - {{ site_settings.site_name|default:'ETH Imports' }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Breadcrumb -->
+    <nav class="text-sm mb-6">
+        <ol class="flex items-center space-x-2 text-gray-500">
+            <li><a href="{% url 'products:product_list' %}" class="hover:text-primary">Home</a></li>
+            <li><i class="fas fa-chevron-right text-xs"></i></li>
+            {% if product.category %}
+                <li><a href="{% url 'products:product_list' %}?category={{ product.category.slug }}" class="hover:text-primary">{{ product.category.name }}</a></li>
+                <li><i class="fas fa-chevron-right text-xs"></i></li>
+            {% endif %}
+            <li class="text-gray-900 font-semibold">{{ product.title|truncatechars:30 }}</li>
+        </ol>
+    </nav>
+
+    <!-- Product Detail -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 md:p-8">
+            <!-- Product Image with Gallery -->
+            <div class="relative">
+                <!-- Main Image -->
+                <div class="aspect-square bg-gray-100 rounded-xl overflow-hidden">
+                    {% if product.images.exists %}
+                        <img src="{{ product.images.first.image.url }}" alt="{{ product.title }}"
+                             id="mainProductImage"
+                             class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
+                    {% elif product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.title }}" 
+                             id="mainProductImage"
+                             class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center">
+                            <i class="fas fa-image text-gray-300 text-6xl"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Badges -->
+                <div class="absolute top-4 left-4 flex flex-col gap-2">
+                    {% if product.featured %}
+                        <span class="badge badge-best">Best Seller</span>
+                    {% endif %}
+                    {% if product.price > 50000 %}
+                        <span class="badge badge-sale">Premium</span>
+                    {% endif %}
+                    {% if product.stock_quantity <= 5 and product.stock_quantity > 0 %}
+                        <span class="badge badge-warning" style="background: #F59E0B; color: white;">Low Stock</span>
+                    {% endif %}
+                </div>
+                
+                <!-- Thumbnail Gallery -->
+                {% if product.images.exists or product.image %}
+                    <div class="grid grid-cols-4 gap-2 mt-4" id="thumbnailGallery">
+                        {% if product.images.exists %}
+                            {% for img in product.images.all %}
+                                <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 {% if forloop.first %}border-primary{% else %}border-transparent{% endif %} hover:border-primary transition-colors"
+                                     onclick="changeImage('{{ img.image.url }}', this)">
+                                    <img src="{{ img.image.url }}" alt="{{ img.alt_text|default:product.title }}" 
+                                         class="w-full h-full object-cover">
+                                </div>
+                            {% endfor %}
+                        {% elif product.image %}
+                            <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 border-primary"
+                                 onclick="changeImage('{{ product.image.url }}', this)">
+                                <img src="{{ product.image.url }}" alt="{{ product.title }}" 
+                                     class="w-full h-full object-cover">
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Product Info -->
+            <div>
+                <div class="mb-2">
+                    <span class="text-sm text-gray-500">{{ product.source }}</span>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ product.title }}</h1>
+                
+                <!-- Rating -->
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-yellow-400">
+                        {% for i in "12345"|make_list %}
+                            {% if forloop.counter <= avg_rating|floatformat:"0"|add:"0" %}
+                                ★
+                            {% else %}
+                                ☆
+                            {% endif %}
+                        {% endfor %}
+                    </span>
+                    <span class="text-sm text-gray-500">({{ review_count|default:"0" }} reviews)</span>
+                </div>
+                
+                <!-- Price -->
+                <div class="mb-6">
+                    <span class="text-3xl font-bold text-primary">ETB {{ product.price|floatformat:0|intcomma }}</span>
+                    {% if product.price > 50000 %}
+                        <span class="text-lg text-gray-400 line-through ml-3">ETB {{ product.price|add:"5000"|floatformat:0|intcomma }}</span>
+                        <span class="text-sm text-danger font-semibold ml-2">-10%</span>
+                    {% endif %}
+                </div>
+                
+                <!-- Stock Status -->
+                <div class="mb-6">
+                    <div class="flex items-center gap-2">
+                        <span class="stock-badge 
+                            {% if product.stock_quantity > 10 %}in-stock
+                            {% elif product.stock_quantity > 0 %}low-stock
+                            {% else %}out-of-stock{% endif %}">
+                            <span class="dot"></span>
+                            {% if product.stock_quantity > 10 %}
+                                In Stock
+                            {% elif product.stock_quantity > 0 %}
+                                Only {{ product.stock_quantity }} left
+                            {% else %}
+                                Out of Stock
+                            {% endif %}
+                        </span>
+                        <span class="text-sm text-gray-500">| Free shipping</span>
+                    </div>
+                </div>
+                
+                <!-- Description -->
+                <div class="mb-6">
+                    <h3 class="font-semibold text-gray-900 mb-2">Description</h3>
+                    <p class="text-gray-600 leading-relaxed">{{ product.description|linebreaks }}</p>
+                </div>
+                
+                <!-- Features -->
+                <div class="mb-6">
+                    <h3 class="font-semibold text-gray-900 mb-2">Features</h3>
+                    <ul class="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                        <li><i class="fas fa-check text-primary mr-2"></i> Premium Quality</li>
+                        <li><i class="fas fa-check text-primary mr-2"></i> Authentic Product</li>
+                        <li><i class="fas fa-check text-primary mr-2"></i> 30-Day Return</li>
+                        <li><i class="fas fa-check text-primary mr-2"></i> Warranty Included</li>
+                    </ul>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="space-y-3">
+                    <!-- WhatsApp -->
+                    <a href="{{ whatsapp_url }}" target="_blank" 
+                       class="w-full flex items-center justify-center bg-[#25D366] text-white px-6 py-3 rounded-xl hover:bg-opacity-90 transition-all font-semibold text-lg">
+                        <i class="fab fa-whatsapp text-2xl mr-3"></i>
+                        Order via WhatsApp
+                    </a>
+                    
+                    <!-- Telegram -->
+                    <a href="{{ telegram_url }}" target="_blank"
+                       class="w-full flex items-center justify-center bg-[#0088CC] text-white px-6 py-3 rounded-xl hover:bg-opacity-90 transition-all font-semibold text-lg">
+                        <i class="fab fa-telegram text-2xl mr-3"></i>
+                        Order via Telegram
+                    </a>
+                    
+                    <!-- Action Row -->
+                    <div class="flex gap-3">
+                        <button onclick="app.addToCart({{ product.id }}, '{{ product.title|escapejs }}')" 
+                                class="flex-1 btn btn-primary text-lg">
+                            <i class="fas fa-shopping-bag mr-2"></i> Add to Cart
+                        </button>
+                        <button onclick="app.toggleWishlist({{ product.id }})" 
+                                class="btn btn-secondary px-6" data-product-id="{{ product.id }}">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products %}
+        <div class="mt-12">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">You May Also Like</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {% for related in related_products %}
+                    <div class="product-card-premium">
+                        <a href="{% url 'products:product_detail' related.slug %}">
+                            <div class="image-wrapper" style="padding-top: 75%;">
+                                {% if related.images.exists %}
+                                    <img src="{{ related.images.first.image.url }}" alt="{{ related.title }}" 
+                                         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+                                {% elif related.image %}
+                                    <img src="{{ related.image.url }}" alt="{{ related.title }}" 
+                                         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+                                {% else %}
+                                    <div class="w-full h-full bg-gray-100 flex items-center justify-center">
+                                        <i class="fas fa-image text-gray-300 text-3xl"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="info p-3">
+                                <h3 class="text-sm font-semibold text-gray-800">{{ related.title|truncatechars:30 }}</h3>
+                                <p class="text-lg font-bold text-primary">ETB {{ related.price|floatformat:0|intcomma }}</p>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Reviews Section -->
+    <div class="mt-12 bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-white/30 p-6 md:p-8">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Customer Reviews</h2>
+                <div class="flex items-center gap-4 mt-2">
+                    <span class="text-3xl font-bold text-primary">{{ avg_rating|floatformat:1|default:"0.0" }}</span>
+                    <span class="text-yellow-400 text-2xl">
+                        {% for i in "12345"|make_list %}
+                            {% if forloop.counter <= avg_rating|floatformat:"0"|add:"0" %}
+                                ★
+                            {% else %}
+                                ☆
+                            {% endif %}
+                        {% endfor %}
+                    </span>
+                    <span class="text-gray-500">({{ review_count|default:"0" }} reviews)</span>
+                </div>
+            </div>
+            <button onclick="toggleReviewForm()" class="btn btn-primary">
+                <i class="fas fa-pen mr-2"></i> Write Review
+            </button>
+        </div>
+        
+        <!-- Review Form -->
+        <div id="reviewFormContainer" class="hidden mb-8">
+            <div class="bg-gray-50 rounded-xl p-6">
+                <h3 class="text-lg font-semibold mb-4">Write a Review</h3>
+                <form id="reviewForm" method="post">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Your Name *</label>
+                            <input type="text" name="name" required
+                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                   placeholder="Your Name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                            <input type="email" name="email" required
+                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                   placeholder="your@email.com">
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Rating *</label>
+                        <div class="flex gap-2 text-2xl" id="starRating">
+                            <span class="cursor-pointer hover:scale-110 transition-transform" data-value="1">☆</span>
+                            <span class="cursor-pointer hover:scale-110 transition-transform" data-value="2">☆</span>
+                            <span class="cursor-pointer hover:scale-110 transition-transform" data-value="3">☆</span>
+                            <span class="cursor-pointer hover:scale-110 transition-transform" data-value="4">☆</span>
+                            <span class="cursor-pointer hover:scale-110 transition-transform" data-value="5">☆</span>
+                        </div>
+                        <input type="hidden" name="rating" id="ratingValue" value="5">
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Comment *</label>
+                        <textarea name="comment" rows="4" required
+                                  class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                  placeholder="Share your experience with this product..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-4">
+                        <i class="fas fa-paper-plane mr-2"></i> Submit Review
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Reviews List -->
+        <div class="space-y-6">
+            {% for review in reviews %}
+                <div class="border-b border-gray-200 pb-6 last:border-0">
+                    <div class="flex items-center justify-between mb-2">
+                        <div>
+                            <span class="font-semibold text-gray-900">{{ review.name }}</span>
+                            <span class="text-yellow-400 ml-2">
+                                {% for i in "12345"|make_list %}
+                                    {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+                                {% endfor %}
+                            </span>
+                        </div>
+                        <span class="text-sm text-gray-500">{{ review.created_at|date:"M d, Y" }}</span>
+                    </div>
+                    <p class="text-gray-600">{{ review.comment }}</p>
+                </div>
+            {% empty %}
+                <div class="text-center py-8">
+                    <i class="fas fa-comment text-4xl text-gray-300 mb-3"></i>
+                    <p class="text-gray-500">No reviews yet. Be the first to review this product!</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleReviewForm() {
+    const form = document.getElementById('reviewFormContainer');
+    if (form) {
+        form.classList.toggle('hidden');
+        if (!form.classList.contains('hidden')) {
+            form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+}
+
+function changeImage(src, element) {
+    const mainImage = document.getElementById('mainProductImage');
+    if (mainImage) {
+        mainImage.src = src;
+    }
+    // Update active border
+    document.querySelectorAll('#thumbnailGallery .border-2').forEach(el => {
+        el.classList.remove('border-primary');
+        el.classList.add('border-transparent');
+    });
+    element.classList.remove('border-transparent');
+    element.classList.add('border-primary');
+}
+
+// Star rating
+document.addEventListener('DOMContentLoaded', function() {
+    const stars = document.querySelectorAll('#starRating span');
+    const ratingInput = document.getElementById('ratingValue');
+    
+    if (stars.length > 0 && ratingInput) {
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const value = parseInt(this.dataset.value);
+                ratingInput.value = value;
+                stars.forEach((s, index) => {
+                    if (index < value) {
+                        s.textContent = '★';
+                    } else {
+                        s.textContent = '☆';
+                    }
+                });
+            });
+            
+            star.addEventListener('mouseenter', function() {
+                const value = parseInt(this.dataset.value);
+                stars.forEach((s, index) => {
+                    if (index < value) {
+                        s.textContent = '★';
+                    } else {
+                        s.textContent = '☆';
+                    }
+                });
+            });
+            
+            star.addEventListener('mouseleave', function() {
+                const value = parseInt(ratingInput.value);
+                stars.forEach((s, index) => {
+                    if (index < value) {
+                        s.textContent = '★';
+                    } else {
+                        s.textContent = '☆';
+                    }
+                });
+            });
+        });
+    }
+});
+
+// Handle review form submission
+const reviewForm = document.getElementById('reviewForm');
+if (reviewForm) {
+    reviewForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const slug = '{{ product.slug }}';
+        
+        fetch(`/products/api/review/${slug}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                document.getElementById('reviewForm').reset();
+                document.getElementById('reviewFormContainer').classList.add('hidden');
+                location.reload();
+            } else {
+                alert('Please fix the errors and try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        });
+    });
+}
+
+// Toggle contact form
+function toggleContactForm() {
+    const form = document.getElementById('contactForm');
+    if (form) {
+        form.classList.toggle('hidden');
+    }
+}
+</script>
+{% endblock %}
