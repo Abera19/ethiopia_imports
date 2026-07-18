@@ -73,10 +73,10 @@
             
             <!-- Header Actions -->
             <div class="header-actions">
-                <a href="#" class="header-action" title="Wishlist" onclick="app.toggleWishlist(); return false;">
-                    <i class="far fa-heart"></i>
-                    <span class="badge wishlist-badge" id="wishlistBadge">0</span>
-                </a>
+                <a href="{% url 'products:wishlist' %}" class="header-action" title="Wishlist">
+					<i class="far fa-heart"></i>
+					<span class="badge wishlist-badge" id="wishlistBadge">0</span>
+				</a>
                 
                 <a href="#" class="header-action" title="Notifications">
                     <i class="far fa-bell"></i>
