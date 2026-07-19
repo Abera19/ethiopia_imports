@@ -1,0 +1,25 @@
+# products/templatetags/product_extras.py
+from django import template
+
+register = template.Library()
+
+@register.filter
+def category_icon(category_name):
+    """Return Font Awesome icon for category"""
+    icons = {
+        'electronics': 'laptop',
+        'clothing': 'tshirt',
+        'books': 'book',
+        'furniture': 'couch',
+        'home appliances': 'blender',
+        '3d product': 'cube',
+        'new product': 'star',
+        'garden': 'leaf',
+        'sports': 'futbol',
+        'beauty': 'spa',
+        'toys': 'puzzle-piece',
+        'office': 'briefcase',
+        'automotive': 'car',
+        'kitchen': 'utensils',
+    }
+    return icons.get(category_name.lower(), 'tag')

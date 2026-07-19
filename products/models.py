@@ -4,7 +4,7 @@ from django.utils.text import slugify
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal
-
+from django.urls import reverse
 User = get_user_model()
 
 
@@ -12,14 +12,9 @@ class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True, blank=True)
     description = models.TextField(blank=True)
-    icon = models.CharField(max_length=50, blank=True, default='tag')
-    parent = models.ForeignKey(
-        'self',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='subcategories'
-    )
+    icon = models.CharField(max_length=50, blank=True, help_text="Font Awesome icon class (e.g., 'fas fa-laptop')")
+    image = models.ImageField(upload_to='categories/', blank=True, null=True, help_text="Category image for display")
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subcategories')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -34,6 +29,9 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse('products:product_list_by_category', args=[self.slug])
 
 
 class Product(models.Model):

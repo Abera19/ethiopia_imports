@@ -1,3 +1,4 @@
+# ethiopia_imports/urls.py
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -6,9 +7,9 @@ from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include('accounts.urls')),  # Add this
-    path('', RedirectView.as_view(url='products/', permanent=False)),
-    path('products/', include('products.urls')),
+    path('', RedirectView.as_view(url='/products/', permanent=True)),
+    path('products/', include('products.urls')),  # Include products app URLs
+    path('accounts/', include('accounts.urls')),  # Include accounts app URLs
 ]
 
 if settings.DEBUG:

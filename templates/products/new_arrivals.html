@@ -3,84 +3,30 @@
 {% load static %}
 {% load product_extras %}
 
-{% block title %}Products - {{ site_settings.site_name|default:'ETH Imports' }}{% endblock %}
+{% block title %}New Arrivals - {{ site_settings.site_name|default:'ETH Imports' }}{% endblock %}
 
 {% block hero %}
-<!-- Hero Section - Standard Size -->
+<!-- New Arrivals Hero -->
 <section class="hero-section">
-    <div class="hero-banner">
+    <div class="hero-banner" style="background: linear-gradient(135deg, #F6B100 0%, #D49A00 40%, #0F8B4C 100%);">
         <div class="hero-content">
             <span class="hero-badge">
-                <i class="fas fa-gift mr-2"></i> {{ site_settings.hero_badge|default:'Summer Sale' }}
+                <i class="fas fa-star mr-2"></i> New Arrivals
             </span>
             <h1 class="hero-title">
-                {{ site_settings.hero_title|default:'Discover Premium Ethiopian Imports' }}
+                Fresh Products, <span class="highlight">Just Arrived</span>
             </h1>
             <p class="hero-subtitle">
-                {{ site_settings.hero_subtitle|default:'Curated collection of high-quality products from around the world, delivered to your doorstep.' }}
+                Discover our latest collection of premium products added in the last 30 days.
             </p>
             <div class="hero-actions">
-                <a href="{{ site_settings.hero_button_url|default:'#products' }}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-shopping-bag mr-2"></i> {{ site_settings.hero_button_text|default:'Shop Now' }}
-                </a>
-                <a href="{{ site_settings.hero_secondary_button_url|default:'#' }}" class="btn btn-outline btn-lg">
-                    <i class="fas fa-play-circle mr-2"></i> {{ site_settings.hero_secondary_button_text|default:'Watch Story' }}
+                <a href="#products" class="btn btn-primary btn-lg">
+                    <i class="fas fa-shopping-bag mr-2"></i> Shop New Arrivals
                 </a>
             </div>
         </div>
         <div class="hero-image">
-            <img src="{% static 'images/hero-product.svg' %}" alt="Premium Products" class="w-full">
-        </div>
-    </div>
-</section>
-
-<!-- Categories Section with Images - Horizontal Scroll -->
-<section class="categories-section">
-    <div class="section-header">
-        <div class="flex items-center gap-2">
-            <h2>{{ site_settings.categories_title|default:'Shop by Category' }}</h2>
-            <span class="text-xs text-gray-400 font-normal">({{ categories.count }} categories)</span>
-        </div>
-    </div>
-    <div class="category-scroll-wrapper">
-        <div class="category-grid-enhanced" id="categoryGrid">
-            {% for category in categories %}
-                <a href="{% url 'products:product_list' %}?category={{ category.slug }}" class="category-card-enhanced animate-fade-in">
-                    <div class="category-image-wrapper">
-                        {% if category.image %}
-                            <img src="{{ category.image.url }}" alt="{{ category.name }}" loading="lazy">
-                        {% else %}
-                            <div class="category-image-placeholder" style="background: linear-gradient(135deg, {% cycle '#0F8B4C' '#F6B100' '#1B254B' '#D49A00' %}, {% cycle '#0A6B3A' '#D49A00' '#121A35' '#F6B100' %});">
-                                <i class="fas fa-{{ category.icon|default:'tag' }} fa-2x text-white/80"></i>
-                            </div>
-                        {% endif %}
-                        <div class="category-overlay"></div>
-                        {% if category.products.count > 10 %}
-                            <span class="category-hot-badge">
-                                <i class="fas fa-fire mr-1"></i> Hot
-                            </span>
-                        {% elif category.products.count == 0 %}
-                            <span class="category-empty-badge">
-                                <i class="fas fa-clock mr-1"></i> Soon
-                            </span>
-                        {% endif %}
-                    </div>
-                    <div class="category-info">
-                        <div class="category-icon">
-                            <i class="fas fa-{{ category.icon|default:'tag' }}"></i>
-                        </div>
-                        <div class="category-details">
-                            <h3 class="category-name">{{ category.name|truncatechars:12 }}</h3>
-                            <p class="category-count">
-                                <i class="fas fa-box"></i> {{ category.products.count }}
-                            </p>
-                        </div>
-                        <div class="category-arrow">
-                            <i class="fas fa-chevron-right"></i>
-                        </div>
-                    </div>
-                </a>
-            {% endfor %}
+            <img src="{% static 'images/new-arrivals.svg' %}" alt="New Arrivals" class="w-full">
         </div>
     </div>
 </section>
@@ -91,14 +37,14 @@
     <!-- Mobile Filter Overlay -->
     <div class="filter-overlay" id="filterOverlay" onclick="toggleFilterSidebar()"></div>
 
-    <!-- Filter Sidebar - Slides in on both desktop and mobile -->
+    <!-- Filter Sidebar -->
     <aside class="filter-sidebar-wrapper" id="filterSidebar">
         <div class="filter-sidebar-premium">
             <div class="filter-header">
                 <h3><i class="fas fa-sliders-h mr-2 text-primary"></i> Filters</h3>
                 <div class="flex items-center gap-2">
                     {% if request.GET %}
-                        <a href="{% url 'products:product_list' %}" class="filter-clear">
+                        <a href="{% url 'products:new_arrivals' %}" class="filter-clear">
                             <i class="fas fa-times mr-1"></i> Clear All
                         </a>
                     {% endif %}
@@ -108,7 +54,7 @@
                 </div>
             </div>
             
-            <form id="filterForm" method="get" action="{% url 'products:product_list' %}">
+            <form id="filterForm" method="get" action="{% url 'products:new_arrivals' %}">
                 <!-- Search -->
                 <div class="filter-group-premium">
                     <div class="group-header">
@@ -117,7 +63,7 @@
                     <div class="group-content">
                         <input type="text" name="q" value="{{ request.GET.q|default:'' }}" 
                                class="w-full px-3 py-2 border border-gray-200 rounded-md focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-                               placeholder="Search products...">
+                               placeholder="Search new arrivals...">
                     </div>
                 </div>
                 
@@ -200,13 +146,18 @@
         </div>
     </aside>
     
-    <!-- Product Grid - Full width -->
+    <!-- Product Grid -->
     <section class="product-grid-section">
         <!-- Results Header -->
         <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-            <p class="results-count">
-                <span class="font-semibold">{{ page_obj.paginator.count }}</span> products found
-            </p>
+            <div>
+                <p class="results-count">
+                    <span class="font-semibold">{{ page_obj.paginator.count }}</span> new arrivals found
+                </p>
+                <p class="text-sm text-gray-500 mt-1">
+                    <i class="fas fa-clock mr-1"></i> Added in the last 30 days
+                </p>
+            </div>
             <div class="flex items-center gap-3">
                 <div class="view-toggle">
                     <button class="view-toggle-btn active" onclick="setView('grid')" title="Grid View">
@@ -231,14 +182,14 @@
                         {% endif %}
                         
                         <div class="badges">
+                            <span class="badge badge-new">
+                                <i class="fas fa-star mr-1"></i> New
+                            </span>
                             {% if product.price > 50000 %}
                                 <span class="badge badge-sale">Premium</span>
                             {% endif %}
                             {% if product.featured %}
                                 <span class="badge badge-best">Best Seller</span>
-                            {% endif %}
-                            {% if forloop.counter <= 2 %}
-                                <span class="badge badge-new">New</span>
                             {% endif %}
                         </div>
                         
@@ -280,13 +231,20 @@
                                 <i class="fas fa-times-circle mr-1"></i> Out of Stock
                             {% endif %}
                         </div>
+                        <!-- New arrival date badge -->
+                        <div class="mt-2 text-xs text-gray-400">
+                            <i class="fas fa-calendar-alt mr-1"></i> Added {{ product.created_at|timesince }} ago
+                        </div>
                     </div>
                 </div>
             {% empty %}
                 <div class="col-span-full text-center py-16">
                     <i class="fas fa-box-open text-6xl text-gray-300 mb-4"></i>
-                    <h3 class="text-xl font-semibold text-gray-600">No products found</h3>
-                    <p class="text-gray-500">Try adjusting your filters or search terms.</p>
+                    <h3 class="text-xl font-semibold text-gray-600">No new arrivals found</h3>
+                    <p class="text-gray-500">Check back soon for new products!</p>
+                    <a href="{% url 'products:product_list' %}" class="btn btn-primary mt-4 inline-block">
+                        Browse All Products
+                    </a>
                 </div>
             {% endfor %}
         </div>
@@ -415,69 +373,6 @@ document.addEventListener('DOMContentLoaded', function() {
             app.updateAllWishlistButtons();
         }
     }, 500);
-});
-
-// ===== Category Scroll with Indicators =====
-function setupCategoryScroll() {
-    const container = document.querySelector('.category-grid-enhanced');
-    if (!container) return;
-
-    // Create scroll indicators
-    const wrapper = container.parentElement;
-    wrapper.style.position = 'relative';
-
-    // Check if scroll is needed
-    function checkScroll() {
-        const hasScroll = container.scrollWidth > container.clientWidth;
-        const existingLeft = wrapper.querySelector('.scroll-indicator.left');
-        const existingRight = wrapper.querySelector('.scroll-indicator.right');
-
-        if (hasScroll) {
-            if (!existingLeft) {
-                const leftBtn = document.createElement('button');
-                leftBtn.className = 'scroll-indicator left';
-                leftBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
-                leftBtn.onclick = () => {
-                    container.scrollBy({ left: -200, behavior: 'smooth' });
-                };
-                wrapper.appendChild(leftBtn);
-
-                const rightBtn = document.createElement('button');
-                rightBtn.className = 'scroll-indicator right';
-                rightBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
-                rightBtn.onclick = () => {
-                    container.scrollBy({ left: 200, behavior: 'smooth' });
-                };
-                wrapper.appendChild(rightBtn);
-            }
-        } else {
-            // Remove indicators if no scroll needed
-            document.querySelectorAll('.scroll-indicator').forEach(el => el.remove());
-        }
-    }
-
-    // Check on load and resize
-    checkScroll();
-    window.addEventListener('resize', checkScroll);
-    
-    // Hide/show indicators based on scroll position
-    container.addEventListener('scroll', function() {
-        const leftBtn = wrapper.querySelector('.scroll-indicator.left');
-        const rightBtn = wrapper.querySelector('.scroll-indicator.right');
-        
-        if (leftBtn) {
-            leftBtn.style.opacity = this.scrollLeft > 10 ? '1' : '0.3';
-        }
-        if (rightBtn) {
-            const maxScroll = this.scrollWidth - this.clientWidth;
-            rightBtn.style.opacity = this.scrollLeft < maxScroll - 10 ? '1' : '0.3';
-        }
-    });
-}
-
-// Initialize after DOM load
-document.addEventListener('DOMContentLoaded', function() {
-    setupCategoryScroll();
 });
 </script>
 {% endblock %}

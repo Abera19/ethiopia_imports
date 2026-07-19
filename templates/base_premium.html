@@ -46,37 +46,54 @@
     <!-- Premium Header -->
     <header class="premium-header" id="mainHeader">
         <div class="header-top">
-           <!-- Logo -->
-			<a href="{% url 'products:product_list' %}" class="premium-logo">
-				<div class="logo-icon" style="background: linear-gradient(135deg, {{ site_settings.eth_e_color|default:'#0F8B4C' }}, {{ site_settings.eth_h_color|default:'#0A6B3A' }});">
-					{{ site_settings.eth_text|default:'ETH'|slice:":1" }}
-				</div>
-				<div class="logo-text">
-					<span class="e" style="color: {{ site_settings.eth_e_color|default:'#0F8B4C' }};">{{ site_settings.eth_text|default:'ETH'|slice:":1" }}</span>
-					<span class="t" style="color: {{ site_settings.eth_t_color|default:'#F6B100' }};">{{ site_settings.eth_text|default:'ETH'|slice:"1:2" }}</span>
-					<span class="h" style="color: {{ site_settings.eth_h_color|default:'#EF4444' }};">{{ site_settings.eth_text|default:'ETH'|slice:"2:3" }}</span>
-					<span class="suffix">{{ site_settings.brand_suffix|default:' Imports' }}</span>
-				</div>
-			</a>
-						
-            <!-- Search -->
-            <div class="search-wrapper">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" class="search-input" placeholder="Search premium products..." id="searchInput">
-                <div class="search-suggestions" id="searchSuggestions">
-                    <div class="suggestion-item">
-                        <i class="fas fa-clock text-gray-400"></i>
-                        <span>Recent searches</span>
-                    </div>
+            <!-- Logo -->
+            <a href="{% url 'products:product_list' %}" class="premium-logo">
+                <div class="logo-icon" style="background: linear-gradient(135deg, {{ site_settings.eth_e_color|default:'#0F8B4C' }}, {{ site_settings.eth_h_color|default:'#0A6B3A' }});">
+                    {{ site_settings.eth_text|default:'ETH'|slice:":1" }}
                 </div>
-            </div>
+                <div class="logo-text">
+                    <span class="e" style="color: {{ site_settings.eth_e_color|default:'#0F8B4C' }};">{{ site_settings.eth_text|default:'ETH'|slice:":1" }}</span>
+                    <span class="t" style="color: {{ site_settings.eth_t_color|default:'#F6B100' }};">{{ site_settings.eth_text|default:'ETH'|slice:"1:2" }}</span>
+                    <span class="h" style="color: {{ site_settings.eth_h_color|default:'#EF4444' }};">{{ site_settings.eth_text|default:'ETH'|slice:"2:3" }}</span>
+                    <span class="suffix">{{ site_settings.brand_suffix|default:' Imports' }}</span>
+                </div>
+            </a>
             
             <!-- Header Actions -->
             <div class="header-actions">
-                <a href="{% url 'products:wishlist' %}" class="header-action" title="Wishlist">
-					<i class="far fa-heart"></i>
-					<span class="badge wishlist-badge" id="wishlistBadge">0</span>
+                <!-- Mega Menu Toggle Button -->
+                <button class="mega-menu-toggle" id="megaMenuToggle" title="Categories">
+                    <i class="fas fa-th-large"></i>
+                    <span>Categories</span>
+                </button>
+                
+                <!-- Hamburger Menu Button for Filters -->
+                <button class="header-action hamburger-btn" onclick="toggleFilterSidebar()" title="Filters">
+                    <i class="fas fa-bars"></i>
+                </button>
+                   <!-- NEW: New Arrivals Button -->
+				<a href="{% url 'products:new_arrivals' %}" class="header-action new-arrivals-btn" title="New Arrivals">
+					<i class="fas fa-star"></i>
+					{% if new_arrivals_count %}
+						<span class="badge" style="background: var(--accent); color: var(--gray-900);">{{ new_arrivals_count }}</span>
+					{% endif %}
 				</a>
+                <!-- Search -->
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Search premium products..." id="searchInput">
+                    <div class="search-suggestions" id="searchSuggestions">
+                        <div class="suggestion-item">
+                            <i class="fas fa-clock text-gray-400"></i>
+                            <span>Recent searches</span>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="{% url 'products:wishlist' %}" class="header-action" title="Wishlist">
+                    <i class="far fa-heart"></i>
+                    <span class="badge wishlist-badge" id="wishlistBadge">0</span>
+                </a>
                 
                 <a href="#" class="header-action" title="Notifications">
                     <i class="far fa-bell"></i>
@@ -179,7 +196,6 @@
             </div>
         </div>
     </header>
-
     <!-- Main Content -->
     <main>
         {% block hero %}{% endblock %}
@@ -363,6 +379,46 @@
 
     <!-- Scripts -->
     <script>
+        // ===== Filter Sidebar Toggle =====
+        function toggleFilterSidebar() {
+            const sidebar = document.getElementById('filterSidebar');
+            const overlay = document.getElementById('filterOverlay');
+            
+            if (!sidebar) {
+                console.log('Filter sidebar not available on this page');
+                return;
+            }
+            
+            sidebar.classList.toggle('open');
+            if (overlay) {
+                overlay.classList.toggle('active');
+            }
+            document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+        }
+
+        // Close sidebar when clicking outside
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('filterSidebar');
+            const overlay = document.getElementById('filterOverlay');
+            const hamburgerBtn = document.querySelector('.hamburger-btn');
+            
+            if (sidebar && sidebar.classList.contains('open')) {
+                if (!sidebar.contains(e.target) && !hamburgerBtn?.contains(e.target)) {
+                    toggleFilterSidebar();
+                }
+            }
+        });
+
+        // Close sidebar on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const sidebar = document.getElementById('filterSidebar');
+                if (sidebar && sidebar.classList.contains('open')) {
+                    toggleFilterSidebar();
+                }
+            }
+        });
+
         // User Dropdown Toggle
         function toggleUserDropdown() {
             const menu = document.getElementById('userDropdownMenu');

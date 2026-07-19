@@ -169,29 +169,53 @@ body {
 }
 
 /* ===== Product Cards ===== */
+
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    /* This rule handles responsiveness and forces the items to fill the right side */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important; 
     gap: 2rem;
     padding: 2rem 0;
+    width: 100%; /* Ensures the grid element expands fully */
 }
 
-.product-card {
+/* Add .product-card-premium here so it inherits the beautiful hover animations */
+.product-card, .product-card-premium {
+    position: relative;
     background: var(--bg-white);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     overflow: hidden;
-    transition: var(--transition);
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-color);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.04);
     cursor: pointer;
 }
 
-.product-card:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--shadow-lg);
-    border-color: var(--primary-green);
+.product-card::before, .product-card-premium::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #0A8C5A, #FCD116, #DA121A);
+    opacity: 0;
+    transition: opacity 0.4s ease;
 }
 
+.product-card:hover::before, .product-card-premium:hover::before {
+    opacity: 1;
+}
+
+.product-card:hover, .product-card-premium:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+}
+
+.product-card:hover .product-card-price::after, 
+.product-card-premium:hover .product-card-price::after {
+    transform: scaleX(1);
+}
 /* Skeleton Loading */
 .product-card-skeleton {
     background: var(--bg-white);

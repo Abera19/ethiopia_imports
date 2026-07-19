@@ -2,14 +2,13 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}My Wishlist - ETH Imports{% endblock %}
+{% block title %}My Wishlist - {{ site_settings.site_name|default:'ETH Imports' }}{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <h1 class="text-3xl font-bold text-gray-900 mb-6">My Wishlist</h1>
     
     <div id="wishlistContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <!-- Products will be loaded here by JavaScript -->
         <div class="col-span-full text-center py-8">
             <div class="spinner"></div>
             <p class="text-gray-500 mt-4">Loading your wishlist...</p>
@@ -19,5 +18,10 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    // Override toggleFilterSidebar for wishlist page (if needed)
+    // The function is already defined in base_premium.html
+    console.log('Wishlist page loaded');
+</script>
 <script src="{% static 'products/js/wishlist.js' %}"></script>
 {% endblock %}

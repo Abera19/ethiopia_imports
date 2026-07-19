@@ -1,16 +1,19 @@
+# products/context_processors.py
 from django.conf import settings
 from .models import Category, Product, SiteSettings
+from django.utils import timezone
+from datetime import timedelta
 
 
-def site_context(request):
-    """Context processor for common site data"""
+def new_arrivals_count(request):
+    """Get count of new arrivals from the last 30 days"""
+    thirty_days_ago = timezone.now() - timedelta(days=30)
+    count = Product.objects.filter(
+        created_at__gte=thirty_days_ago,
+        status='active'
+    ).count()
     return {
-        'categories': Category.objects.all(),
-        'featured_products': Product.objects.filter(status='active', featured=True)[:6],
-        'whatsapp_number': settings.WHATSAPP_NUMBER,
-        'telegram_username': settings.TELEGRAM_USERNAME,
-        'site_name': 'Ethiopia Imports',
-        'current_path': request.path,
+        'new_arrivals_count': count
     }
 
 
@@ -19,12 +22,12 @@ def site_context(request):
     # Get site settings
     try:
         site_settings = SiteSettings.objects.first()
-    except:
+    except SiteSettings.DoesNotExist:
         site_settings = None
 
     context = {
         'categories': Category.objects.all(),
-        'featured_products': Product.objects.filter(status='active', featured=True)[:6],
+        # REMOVED: 'featured_products': Product.objects.filter(status='active', featured=True)[:6],
         'whatsapp_number': getattr(settings, 'WHATSAPP_NUMBER', '+251900000000'),
         'telegram_username': getattr(settings, 'TELEGRAM_USERNAME', 'your_username'),
         'site_name': 'ETH Imports',

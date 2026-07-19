@@ -10,6 +10,8 @@ from django.utils.decorators import method_decorator
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
+from django.utils import timezone
+from datetime import timedelta
 import json
 import logging
 from .models import Product, Category, ProductView, ContactMessage, ProductReview
@@ -27,6 +29,29 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+
+
+class NewArrivalsView(ListView):
+    model = Product
+    template_name = 'products/new_arrivals.html'
+    context_object_name = 'products'
+    paginate_by = 12
+
+    def get_queryset(self):
+        # Get products from the last 30 days
+        thirty_days_ago = timezone.now() - timedelta(days=30)
+        return Product.objects.filter(
+            created_at__gte=thirty_days_ago,
+            status='active'  # Product has status field
+        ).order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Get all categories (no status filter needed for Category)
+        context['categories'] = Category.objects.all().prefetch_related('subcategories')
+        context['page_title'] = 'New Arrivals'
+        context['page_description'] = 'Check out our latest products'
+        return context
 
 
 class ProductListView(ListView):
@@ -95,7 +120,7 @@ class ProductListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Get all categories for sidebar
+        # Get all categories for sidebar (no status filter needed)
         context['categories'] = Category.objects.all().prefetch_related('subcategories')
 
         # Get price range for filter
@@ -290,7 +315,7 @@ def quick_view(request, slug):
         'price': str(product.price),
         'image_url': product.image.url if product.image else None,
         'stock': product.stock_quantity,
-        'in_stock': product.is_in_stock,
+        'in_stock': product.stock_quantity > 0,
         'category': product.category.name if product.category else None,
         'source': product.source,
     }
@@ -428,23 +453,23 @@ def wishlist_products_api(request):
                 'price': str(product.price),
                 'image_url': product.image.url if product.image else None,
                 'source': product.source,
-                'in_stock': product.is_in_stock,
+                'in_stock': product.stock_quantity > 0,
             })
 
         return JsonResponse({'products': data})
     except:
         return JsonResponse({'products': []})
+
+
 @login_required
 def wishlist_view(request):
     """Display user's wishlist"""
-    # Since wishlist is stored in localStorage, we need to pass products
-    # that the user has in their wishlist
-    # For now, we'll display a message
     context = {
         'page_title': 'My Wishlist',
         'message': 'Your wishlist items will appear here. Add products to your wishlist by clicking the heart icon.',
     }
     return render(request, 'products/wishlist.html', context)
+
 
 @login_required
 def profile_view(request):
@@ -455,15 +480,16 @@ def profile_view(request):
     }
     return render(request, 'products/profile.html', context)
 
+
 @login_required
 def orders_view(request):
     """Display user's orders"""
-    # For now, show empty orders
     context = {
         'page_title': 'My Orders',
         'message': 'Your orders will appear here once you make a purchase.',
     }
     return render(request, 'products/orders.html', context)
+
 
 def debug_products(request):
     """Debug view to check products"""

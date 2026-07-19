@@ -134,27 +134,56 @@ class ETHImportsApp {
         suggestions.classList.add('active');
     }
 
+    // ===== MEGA MENU - FIXED =====
     setupMegaMenu() {
-        const header = document.querySelector('.premium-header');
         const megaMenu = document.getElementById('megaMenu');
-        if (!header || !megaMenu) return;
-        let timeout;
+        const toggleBtn = document.getElementById('megaMenuToggle');
 
-        const openMenu = () => {
-            clearTimeout(timeout);
-            megaMenu.classList.add('open');
-        };
+        if (!megaMenu) {
+            console.warn('⚠️ Mega menu element not found');
+            return;
+        }
+        
+        if (!toggleBtn) {
+            console.warn('⚠️ Mega menu toggle button not found');
+            return;
+        }
 
-        const closeMenu = () => {
-            timeout = setTimeout(() => {
+        console.log('✅ Mega menu setup complete');
+
+        // Remove any existing event listeners by cloning
+        const newToggleBtn = toggleBtn.cloneNode(true);
+        toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
+        
+        // Use the new button reference
+        const finalToggleBtn = document.getElementById('megaMenuToggle');
+
+        // Toggle menu on button click
+        finalToggleBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            megaMenu.classList.toggle('open');
+            this.classList.toggle('active');
+            
+            console.log('Menu toggled:', megaMenu.classList.contains('open'));
+        });
+
+        // Close when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!megaMenu.contains(e.target) && !finalToggleBtn.contains(e.target)) {
                 megaMenu.classList.remove('open');
-            }, 200);
-        };
+                finalToggleBtn.classList.remove('active');
+            }
+        });
 
-        header.addEventListener('mouseenter', openMenu);
-        header.addEventListener('mouseleave', closeMenu);
-        megaMenu.addEventListener('mouseenter', openMenu);
-        megaMenu.addEventListener('mouseleave', closeMenu);
+        // Close on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && megaMenu.classList.contains('open')) {
+                megaMenu.classList.remove('open');
+                finalToggleBtn.classList.remove('active');
+            }
+        });
     }
 
     // ============================================
